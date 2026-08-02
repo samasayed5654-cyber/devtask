@@ -14,7 +14,8 @@
   let calendarDate = new Date();
   let editingTaskId = null;
   let currentFilter = 'all';
-  let currentSort = 'date-asc';
+  let currentSort = 'priority';
+  let todaySort = localStorage.getItem('devtask_today_sort') || 'priority';
   let searchQuery = '';
 
   // ---------- DOM References ----------
@@ -62,6 +63,7 @@
   const upcomingTasksEl = $('#upcoming-tasks');
   const recentActivityEl = $('#recent-activity');
   const todayDateEl = $('#today-date');
+  const todaySortSelect = $('#today-sort-select');
 
   // Stats
   const statTotal = $('#stat-total');
@@ -439,7 +441,7 @@
   }
 
   // ---------- Task Item HTML ----------
-  function createTaskItemHTML(task) {
+  function createTaskItemHTML(task, options = {}) {
     const tagsHTML = (task.tags || []).map(t => `<span class="task-tag">#${t}</span>`).join('');
     const attachmentsHTML = (task.attachments && task.attachments.length > 0)
       ? `<div class="task-attachments-gallery">${task.attachments.map(att => {
@@ -450,6 +452,15 @@
           return `<div class="task-media-thumb" onclick="openLightbox('${att.type}', '${att.url.replace(/'/g, "\\'")}')" title="Click to view full size">${thumbContent}</div>`;
         }).join('')}</div>`
       : '';
+
+    const moveBtnsHTML = options.showMoveBtns ? `
+      <button class="task-action-btn move-up" aria-label="Move task up (do earlier)" title="Move Up (Do Earlier)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+      </button>
+      <button class="task-action-btn move-down" aria-label="Move task down (do later)" title="Move Down (Do Later)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+    ` : '';
 
     return `
       <div class="task-item priority-${task.priority} ${task.completed ? 'completed' : ''}" data-id="${task.id}">
@@ -465,6 +476,7 @@
           ${attachmentsHTML}
         </div>
         <div class="task-actions">
+          ${moveBtnsHTML}
           <button class="task-action-btn edit" aria-label="Edit task" title="Edit">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
@@ -494,17 +506,46 @@
     });
   }
 
-  function attachTaskListeners(container) {
+  function attachTaskListeners(container, listArray = null) {
     container.querySelectorAll('.task-item').forEach(item => {
       const id = item.dataset.id;
       const checkbox = item.querySelector('.task-checkbox');
       const editBtn = item.querySelector('.task-action-btn.edit');
       const deleteBtn = item.querySelector('.task-action-btn.delete');
+      const moveUpBtn = item.querySelector('.task-action-btn.move-up');
+      const moveDownBtn = item.querySelector('.task-action-btn.move-down');
 
       checkbox.addEventListener('change', () => toggleTask(id));
       editBtn.addEventListener('click', (e) => { e.stopPropagation(); editTask(id); });
       deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteTask(id); });
+
+      if (moveUpBtn && listArray) {
+        moveUpBtn.addEventListener('click', (e) => { e.stopPropagation(); moveTaskOrder(id, -1, listArray); });
+      }
+      if (moveDownBtn && listArray) {
+        moveDownBtn.addEventListener('click', (e) => { e.stopPropagation(); moveTaskOrder(id, 1, listArray); });
+      }
     });
+  }
+
+  function moveTaskOrder(id, direction, listArray) {
+    const idx = listArray.findIndex(t => t.id === id);
+    if (idx === -1) return;
+    const targetIdx = idx + direction;
+    if (targetIdx < 0 || targetIdx >= listArray.length) return;
+
+    const temp = listArray[idx];
+    listArray[idx] = listArray[targetIdx];
+    listArray[targetIdx] = temp;
+
+    listArray.forEach((t, i) => {
+      const mainTask = tasks.find(x => x.id === t.id);
+      if (mainTask) mainTask.order = i;
+    });
+
+    saveTasks();
+    refreshCurrentView();
+    showToast(direction === -1 ? 'Moved earlier ↑' : 'Moved later ↓', 'info');
   }
 
   // ---------- Dashboard ----------
@@ -513,12 +554,25 @@
     todayDateEl.textContent = formatDate(today);
 
     // Today's tasks
-    const todayTasks = tasks.filter(t => t.date === today);
+    let todayTasks = tasks.filter(t => t.date === today);
+    if (todaySort === 'priority') {
+      todayTasks.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+    } else if (todaySort === 'manual') {
+      todayTasks.sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
+    }
     if (todayTasks.length === 0) {
       todayTasksEl.innerHTML = '<div class="empty-state"><span class="empty-icon">📋</span><p>No tasks for today</p><span class="hint">Press <kbd>N</kbd> to create one</span></div>';
     } else {
-      todayTasksEl.innerHTML = todayTasks.map(t => createTaskItemHTML(t)).join('');
-      attachTaskListeners(todayTasksEl);
+      todayTasksEl.innerHTML = todayTasks.map(t => createTaskItemHTML(t, { showMoveBtns: todaySort === 'manual' })).join('');
+      attachTaskListeners(todayTasksEl, todayTasks);
+    }
+    if (todaySortSelect) {
+      todaySortSelect.value = todaySort;
+      todaySortSelect.onchange = () => {
+        todaySort = todaySortSelect.value;
+        localStorage.setItem('devtask_today_sort', todaySort);
+        renderDashboard();
+      };
     }
 
     // Upcoming tasks (next 7 days, excluding today)
@@ -698,6 +752,9 @@
       case 'priority':
         filtered.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
         break;
+      case 'manual':
+        filtered.sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
+        break;
       case 'name':
         filtered.sort((a, b) => a.title.localeCompare(b.title));
         break;
@@ -706,8 +763,8 @@
     if (filtered.length === 0) {
       tasksList.innerHTML = '<div class="empty-state"><span class="empty-icon">✨</span><p>No tasks found</p><span class="hint">Try adjusting your filters</span></div>';
     } else {
-      tasksList.innerHTML = filtered.map(t => createTaskItemHTML(t)).join('');
-      attachTaskListeners(tasksList);
+      tasksList.innerHTML = filtered.map(t => createTaskItemHTML(t, { showMoveBtns: currentSort === 'manual' })).join('');
+      attachTaskListeners(tasksList, filtered);
     }
 
     updateStats();

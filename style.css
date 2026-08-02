@@ -508,6 +508,31 @@ body {
   color: var(--accent);
 }
 
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.today-sort-select {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.today-sort-select:hover,
+.today-sort-select:focus {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+
 .date-badge {
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -823,6 +848,13 @@ kbd {
   color: var(--priority-urgent);
   border-color: var(--priority-urgent);
   background: var(--priority-urgent-bg);
+}
+
+.task-action-btn.move-up:hover,
+.task-action-btn.move-down:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-dim);
 }
 
 .task-desc-preview {

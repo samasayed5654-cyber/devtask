@@ -100,7 +100,13 @@
             <div class="dash-card today-card">
               <div class="card-header">
                 <h3><span class="accent">//</span> Today's Tasks</h3>
-                <span class="date-badge" id="today-date"></span>
+                <div class="header-controls">
+                  <select id="today-sort-select" class="today-sort-select" aria-label="Sort today's tasks" title="Sort today's tasks">
+                    <option value="priority">⚡ Priority</option>
+                    <option value="manual">🎯 What to do first</option>
+                  </select>
+                  <span class="date-badge" id="today-date"></span>
+                </div>
               </div>
               <div class="card-body" id="today-tasks">
                 <div class="empty-state">
@@ -201,9 +207,10 @@
             <div class="sort-group">
               <label for="sort-select">Sort:</label>
               <select id="sort-select">
+                <option value="priority">Priority</option>
+                <option value="manual">What to do first</option>
                 <option value="date-asc">Date ↑</option>
                 <option value="date-desc">Date ↓</option>
-                <option value="priority">Priority</option>
                 <option value="name">Name</option>
               </select>
             </div>
