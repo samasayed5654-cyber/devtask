@@ -714,6 +714,26 @@ kbd {
   word-break: break-word;
 }
 
+.task-desc-preview {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  word-break: break-word;
+}
+
+.task-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--transition-fast), text-shadow var(--transition-fast);
+  word-break: break-all;
+}
+
+.task-link:hover {
+  color: #fff;
+  text-shadow: 0 0 10px var(--accent-glow);
+}
+
 .task-meta {
   display: flex;
   align-items: center;

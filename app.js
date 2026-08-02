@@ -329,8 +329,8 @@
       <div class="task-item priority-${task.priority} ${task.completed ? 'completed' : ''}" data-id="${task.id}">
         <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} aria-label="Toggle ${task.title}">
         <div class="task-content">
-          <div class="task-title">${escapeHTML(task.title)}</div>
-          ${task.description ? `<div class="task-desc-preview">${escapeHTML(task.description)}</div>` : ''}
+          <div class="task-title">${linkify(escapeHTML(task.title))}</div>
+          ${task.description ? `<div class="task-desc-preview">${linkify(escapeHTML(task.description))}</div>` : ''}
           <div class="task-meta">
             <span class="task-date-label">${formatDateShort(task.date)}</span>
             <span class="task-priority-badge ${task.priority}">${task.priority}</span>
@@ -353,6 +353,18 @@
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  function linkify(str) {
+    if (!str) return '';
+    const urlRegex = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/g;
+    return str.replace(urlRegex, (url) => {
+      let href = url;
+      if (url.startsWith('www.')) {
+        href = 'https://' + url;
+      }
+      return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="task-link" onclick="event.stopPropagation()">${url}</a>`;
+    });
   }
 
   function attachTaskListeners(container) {
@@ -429,7 +441,7 @@
         <div class="activity-item">
           <div class="activity-dot ${dotClass[a.type] || 'created'}"></div>
           <div class="activity-text">
-            <strong>${typeLabels[a.type] || a.type}</strong> "${escapeHTML(a.title)}"
+            <strong>${typeLabels[a.type] || a.type}</strong> "${linkify(escapeHTML(a.title))}"
             <span class="activity-time">${timeAgo(a.time)}</span>
           </div>
         </div>
