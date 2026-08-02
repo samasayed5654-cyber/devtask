@@ -38,6 +38,14 @@
   const taskIdInput = $('#task-id');
   const modalTitle = $('#modal-title');
   const btnSubmit = $('#btn-submit');
+  const taskFileInput = $('#task-file-input');
+  const taskMediaUrl = $('#task-media-url');
+  const btnAddMediaUrl = $('#btn-add-media-url');
+  const mediaPreviewList = $('#media-preview-list');
+  const mediaLightboxOverlay = $('#media-lightbox-overlay');
+  const lightboxClose = $('#lightbox-close');
+  const lightboxContent = $('#lightbox-content');
+  let currentAttachments = [];
 
   // Day modal
   const dayModalOverlay = $('#day-modal-overlay');
@@ -192,6 +200,7 @@
       taskPriorityInput.value = task.priority;
       taskTagsInput.value = (task.tags || []).join(', ');
       taskIdInput.value = task.id;
+      currentAttachments = task.attachments ? [...task.attachments] : [];
     } else {
       editingTaskId = null;
       modalTitle.innerHTML = '<span class="accent">&gt;</span> new_task<span class="cursor-blink">█</span>';
@@ -199,7 +208,9 @@
       taskForm.reset();
       taskDateInput.value = todayString();
       taskIdInput.value = '';
+      currentAttachments = [];
     }
+    renderMediaPreviewList();
     modalOverlay.classList.add('open');
     setTimeout(() => taskTitleInput.focus(), 200);
   }
@@ -216,6 +227,111 @@
   modalOverlay.addEventListener('click', (e) => {
     if (e.target === modalOverlay) closeModal();
   });
+
+  // ---------- Media Helpers ----------
+  function renderMediaPreviewList() {
+    if (!mediaPreviewList) return;
+    if (currentAttachments.length === 0) {
+      mediaPreviewList.innerHTML = '';
+      return;
+    }
+    mediaPreviewList.innerHTML = currentAttachments.map((att, i) => {
+      const isVideo = att.type === 'video';
+      const content = isVideo
+        ? `<video src="${att.url}"></video>`
+        : `<img src="${att.url}" alt="preview">`;
+      return `
+        <div class="media-thumb-box">
+          ${content}
+          <button type="button" class="media-thumb-del" onclick="removeAttachment(${i})" title="Remove">×</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.removeAttachment = function(i) {
+    currentAttachments.splice(i, 1);
+    renderMediaPreviewList();
+  };
+
+  if (taskFileInput) {
+    taskFileInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files || []);
+      files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            compressImage(ev.target.result, (compressedUrl) => {
+              currentAttachments.push({ type: 'image', url: compressedUrl, name: file.name });
+              renderMediaPreviewList();
+            });
+          };
+          reader.readAsDataURL(file);
+        } else if (file.type.startsWith('video/')) {
+          if (file.size > 1500000) {
+            showToast('Video > 1.5MB! Use a video link instead for browser storage.', 'info');
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            currentAttachments.push({ type: 'video', url: ev.target.result, name: file.name });
+            renderMediaPreviewList();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+      taskFileInput.value = '';
+    });
+  }
+
+  function compressImage(dataUrl, callback) {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxW = 500;
+      let w = img.width;
+      let h = img.height;
+      if (w > maxW) {
+        h = Math.round((h * maxW) / w);
+        w = maxW;
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    img.src = dataUrl;
+  }
+
+  if (btnAddMediaUrl) {
+    btnAddMediaUrl.addEventListener('click', () => {
+      const url = (taskMediaUrl.value || '').trim();
+      if (!url) return;
+      const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(url) || url.includes('/video');
+      currentAttachments.push({ type: isVideo ? 'video' : 'image', url, name: 'URL' });
+      taskMediaUrl.value = '';
+      renderMediaPreviewList();
+    });
+  }
+
+  window.openLightbox = function(type, url) {
+    if (!mediaLightboxOverlay || !lightboxContent) return;
+    lightboxContent.innerHTML = type === 'video'
+      ? `<video src="${url}" controls autoplay></video>`
+      : `<img src="${url}" alt="Attachment full size">`;
+    mediaLightboxOverlay.classList.add('open');
+  };
+
+  if (lightboxClose && mediaLightboxOverlay) {
+    lightboxClose.addEventListener('click', () => mediaLightboxOverlay.classList.remove('open'));
+    mediaLightboxOverlay.addEventListener('click', (e) => {
+      if (e.target === mediaLightboxOverlay) {
+        mediaLightboxOverlay.classList.remove('open');
+        lightboxContent.innerHTML = '';
+      }
+    });
+  }
 
   // Day modal
   function openDayModal(dateStr) {
@@ -263,7 +379,7 @@
     if (editingTaskId) {
       const idx = tasks.findIndex(t => t.id === editingTaskId);
       if (idx !== -1) {
-        tasks[idx] = { ...tasks[idx], title, description, date, priority, tags, updatedAt: Date.now() };
+        tasks[idx] = { ...tasks[idx], title, description, date, priority, tags, attachments: [...currentAttachments], updatedAt: Date.now() };
         logActivity('updated', title);
         showToast(`Task "${title}" updated`, 'info');
       }
@@ -275,6 +391,7 @@
         date,
         priority,
         tags,
+        attachments: [...currentAttachments],
         completed: false,
         createdAt: Date.now(),
         updatedAt: Date.now()
@@ -324,6 +441,15 @@
   // ---------- Task Item HTML ----------
   function createTaskItemHTML(task) {
     const tagsHTML = (task.tags || []).map(t => `<span class="task-tag">#${t}</span>`).join('');
+    const attachmentsHTML = (task.attachments && task.attachments.length > 0)
+      ? `<div class="task-attachments-gallery">${task.attachments.map(att => {
+          const isVideo = att.type === 'video';
+          const thumbContent = isVideo
+            ? `<video src="${att.url}"></video><span class="video-play-badge">▶</span>`
+            : `<img src="${att.url}" alt="attachment" loading="lazy">`;
+          return `<div class="task-media-thumb" onclick="openLightbox('${att.type}', '${att.url.replace(/'/g, "\\'")}')" title="Click to view full size">${thumbContent}</div>`;
+        }).join('')}</div>`
+      : '';
 
     return `
       <div class="task-item priority-${task.priority} ${task.completed ? 'completed' : ''}" data-id="${task.id}">
@@ -336,6 +462,7 @@
             <span class="task-priority-badge ${task.priority}">${task.priority}</span>
             ${tagsHTML}
           </div>
+          ${attachmentsHTML}
         </div>
         <div class="task-actions">
           <button class="task-action-btn edit" aria-label="Edit task" title="Edit">
