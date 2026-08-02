@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="DevTask — A programmer-themed task manager with calendar view, priority management, and beautiful dark UI.">
+  <title>DevTask — Programmer's To-Do</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Animated background particles -->
+  <div class="bg-grid"></div>
+  <div class="scanline"></div>
+
+  <!-- App Shell -->
+  <div id="app">
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <span class="logo-icon">&gt;_</span>
+          <h1>DevTask</h1>
+        </div>
+        <span class="version">v2.0.0</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-view="dashboard" id="nav-dashboard">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-btn" data-view="calendar" id="nav-calendar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Calendar</span>
+        </button>
+        <button class="nav-btn" data-view="tasks" id="nav-tasks">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          <span>All Tasks</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-stats">
+        <div class="stat-card">
+          <span class="stat-label">// total</span>
+          <span class="stat-value" id="stat-total">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">// completed</span>
+          <span class="stat-value" id="stat-completed">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">// pending</span>
+          <span class="stat-value" id="stat-pending">0</span>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="terminal-line">
+          <span class="prompt">$</span>
+          <span class="typing-text">ready to code...</span>
+          <span class="cursor-blink">█</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main-content">
+      <!-- Top Bar -->
+      <header id="topbar">
+        <div class="topbar-left">
+          <button id="menu-toggle" class="icon-btn" aria-label="Toggle sidebar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <h2 id="view-title">Dashboard</h2>
+        </div>
+        <div class="topbar-right">
+          <div class="search-box" id="search-container">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="search-input" placeholder="Search tasks..." aria-label="Search tasks">
+          </div>
+          <button class="btn-primary" id="btn-add-task">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>New Task</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Views Container -->
+      <div id="views-container">
+        <!-- Dashboard View -->
+        <section id="view-dashboard" class="view active">
+          <div class="dashboard-grid">
+            <!-- Today's Tasks -->
+            <div class="dash-card today-card">
+              <div class="card-header">
+                <h3><span class="accent">//</span> Today's Tasks</h3>
+                <span class="date-badge" id="today-date"></span>
+              </div>
+              <div class="card-body" id="today-tasks">
+                <div class="empty-state">
+                  <span class="empty-icon">📋</span>
+                  <p>No tasks for today</p>
+                  <span class="hint">Press <kbd>N</kbd> to create one</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upcoming Tasks -->
+            <div class="dash-card upcoming-card">
+              <div class="card-header">
+                <h3><span class="accent">//</span> Upcoming</h3>
+              </div>
+              <div class="card-body" id="upcoming-tasks">
+                <div class="empty-state">
+                  <span class="empty-icon">🚀</span>
+                  <p>No upcoming tasks</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Priority Overview -->
+            <div class="dash-card priority-card">
+              <div class="card-header">
+                <h3><span class="accent">//</span> Priority Breakdown</h3>
+              </div>
+              <div class="card-body" id="priority-overview">
+                <div class="priority-bar-container">
+                  <div class="priority-bar-row">
+                    <span class="priority-label urgent">URGENT</span>
+                    <div class="priority-bar"><div class="priority-fill urgent" id="bar-urgent" style="width:0%"></div></div>
+                    <span class="priority-count" id="count-urgent">0</span>
+                  </div>
+                  <div class="priority-bar-row">
+                    <span class="priority-label high">HIGH</span>
+                    <div class="priority-bar"><div class="priority-fill high" id="bar-high" style="width:0%"></div></div>
+                    <span class="priority-count" id="count-high">0</span>
+                  </div>
+                  <div class="priority-bar-row">
+                    <span class="priority-label medium">MEDIUM</span>
+                    <div class="priority-bar"><div class="priority-fill medium" id="bar-medium" style="width:0%"></div></div>
+                    <span class="priority-count" id="count-medium">0</span>
+                  </div>
+                  <div class="priority-bar-row">
+                    <span class="priority-label low">LOW</span>
+                    <div class="priority-bar"><div class="priority-fill low" id="bar-low" style="width:0%"></div></div>
+                    <span class="priority-count" id="count-low">0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="dash-card activity-card">
+              <div class="card-header">
+                <h3><span class="accent">//</span> Recent Commits</h3>
+              </div>
+              <div class="card-body" id="recent-activity">
+                <div class="empty-state">
+                  <span class="empty-icon">📝</span>
+                  <p>No recent activity</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Calendar View -->
+        <section id="view-calendar" class="view">
+          <div class="calendar-container">
+            <div class="calendar-header">
+              <button class="cal-nav-btn" id="cal-prev" aria-label="Previous month">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <h3 class="cal-month-year" id="cal-month-year"></h3>
+              <button class="cal-nav-btn" id="cal-today-btn">Today</button>
+              <button class="cal-nav-btn" id="cal-next" aria-label="Next month">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+            <div class="calendar-weekdays">
+              <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
+          </div>
+        </section>
+
+        <!-- Tasks View -->
+        <section id="view-tasks" class="view">
+          <div class="tasks-toolbar">
+            <div class="filter-group">
+              <button class="filter-btn active" data-filter="all" id="filter-all">All</button>
+              <button class="filter-btn" data-filter="pending" id="filter-pending">Pending</button>
+              <button class="filter-btn" data-filter="completed" id="filter-completed">Done</button>
+            </div>
+            <div class="sort-group">
+              <label for="sort-select">Sort:</label>
+              <select id="sort-select">
+                <option value="date-asc">Date ↑</option>
+                <option value="date-desc">Date ↓</option>
+                <option value="priority">Priority</option>
+                <option value="name">Name</option>
+              </select>
+            </div>
+          </div>
+          <div class="tasks-list" id="tasks-list">
+            <div class="empty-state">
+              <span class="empty-icon">✨</span>
+              <p>No tasks yet</p>
+              <span class="hint">Click "New Task" to get started</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add/Edit Task Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="task-modal" role="dialog" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <h3 id="modal-title">
+          <span class="accent">&gt;</span> new_task<span class="cursor-blink">█</span>
+        </h3>
+        <button class="icon-btn modal-close" id="modal-close" aria-label="Close modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="task-form">
+        <div class="form-group">
+          <label for="task-title">
+            <span class="code-keyword">const</span> title <span class="code-operator">=</span>
+          </label>
+          <input type="text" id="task-title" placeholder='"Enter task title..."' required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="task-desc">
+            <span class="code-keyword">const</span> description <span class="code-operator">=</span>
+          </label>
+          <textarea id="task-desc" rows="3" placeholder='"Describe your task..."'></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="task-date">
+              <span class="code-keyword">const</span> date <span class="code-operator">=</span>
+            </label>
+            <input type="date" id="task-date" required>
+          </div>
+          <div class="form-group">
+            <label for="task-priority">
+              <span class="code-keyword">const</span> priority <span class="code-operator">=</span>
+            </label>
+            <select id="task-priority" required>
+              <option value="low">🟢 Low</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="high">🟠 High</option>
+              <option value="urgent">🔴 Urgent</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="task-tags">
+            <span class="code-keyword">const</span> tags <span class="code-operator">=</span>
+          </label>
+          <input type="text" id="task-tags" placeholder='"bug, feature, refactor..."' autocomplete="off">
+        </div>
+        <input type="hidden" id="task-id">
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="btn-cancel">cancel()</button>
+          <button type="submit" class="btn-primary" id="btn-submit">
+            <span class="code-keyword">await</span> save()
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Day Detail Modal -->
+  <div class="modal-overlay" id="day-modal-overlay">
+    <div class="modal day-modal" id="day-modal" role="dialog" aria-labelledby="day-modal-title">
+      <div class="modal-header">
+        <h3 id="day-modal-title">
+          <span class="accent">//</span> Tasks for <span id="day-modal-date"></span>
+        </h3>
+        <button class="icon-btn modal-close" id="day-modal-close" aria-label="Close modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="day-modal-body" id="day-modal-tasks"></div>
+      <div class="day-modal-actions">
+        <button class="btn-primary" id="day-modal-add">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Task for This Day
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
