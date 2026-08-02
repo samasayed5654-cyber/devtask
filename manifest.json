@@ -1,0 +1,22 @@
+{
+  "name": "DevTask — Programmer's To-Do",
+  "short_name": "DevTask",
+  "description": "A programmer-themed task manager with calendar view, priority management, and beautiful dark UI.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0a0e14",
+  "theme_color": "#00ff66",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
