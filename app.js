@@ -536,9 +536,11 @@
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       filtered = filtered.filter(t =>
-        t.title.toLowerCase().includes(q) ||
+        (t.title || '').toLowerCase().includes(q) ||
         (t.description || '').toLowerCase().includes(q) ||
-        (t.tags || []).some(tag => tag.toLowerCase().includes(q))
+        (t.priority || '').toLowerCase().includes(q) ||
+        (t.date || '').includes(q) ||
+        (t.tags || []).some(tag => (tag || '').toLowerCase().includes(q))
       );
     }
 
@@ -591,7 +593,17 @@
   // Search
   searchInput.addEventListener('input', () => {
     searchQuery = searchInput.value.trim();
-    renderTasksList();
+    if (currentView !== 'tasks') {
+      switchView('tasks');
+    } else {
+      renderTasksList();
+    }
+  });
+
+  searchInput.addEventListener('focus', () => {
+    if (currentView !== 'tasks' && searchInput.value.trim()) {
+      switchView('tasks');
+    }
   });
 
   // ---------- Stats ----------
