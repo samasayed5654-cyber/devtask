@@ -79,31 +79,10 @@ body {
   width: 100vw;
 }
 
-/* ---------- Background Effects ---------- */
-.bg-grid {
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--border-primary) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border-primary) 1px, transparent 1px);
-  background-size: 60px 60px;
-  opacity: 0.3;
-  pointer-events: none;
-  z-index: 0;
-}
-
+/* ---------- Background Effects (disabled for solid black) ---------- */
+.bg-grid,
 .scanline {
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 255, 149, 0.015) 2px,
-    rgba(0, 255, 149, 0.015) 4px
-  );
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 /* ---------- Scrollbar ---------- */
@@ -474,6 +453,59 @@ body {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
   gap: 20px;
+}
+
+/* ---------- Notion-style Quote Callout ---------- */
+.quote-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 22px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  margin-bottom: 24px;
+  transition: border-color var(--transition-fast);
+}
+
+.quote-callout:hover {
+  border-color: var(--border-hover);
+}
+
+.quote-emoji {
+  font-size: 1.6rem;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  line-height: 1.4;
+  transition: transform var(--transition-fast);
+}
+
+.quote-emoji:hover {
+  transform: scale(1.2);
+}
+
+.quote-text {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  outline: none;
+  flex: 1;
+  min-height: 1.4em;
+  border-bottom: 1px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.quote-text:focus {
+  color: var(--text-primary);
+  border-bottom-color: var(--border-hover);
+}
+
+.quote-text:empty::before {
+  content: 'Write your quote here...';
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 .dash-card {
@@ -871,8 +903,90 @@ kbd {
 
 /* ---------- Calendar View ---------- */
 .calendar-container {
-  max-width: 1000px;
-  margin: 0 auto;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------- Calendar + Photo Layout ---------- */
+.calendar-with-photo {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.personal-photo-card {
+  width: 280px;
+  min-width: 280px;
+  position: relative;
+}
+
+.personal-photo-area {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--border-primary);
+  background: var(--bg-card);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.personal-photo-area:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px var(--accent-dim);
+}
+
+.personal-photo-area img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: calc(var(--radius-lg) - 2px);
+}
+
+.photo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 20px;
+}
+
+.photo-placeholder svg {
+  opacity: 0.4;
+}
+
+.btn-remove-photo {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 50%;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  z-index: 2;
+}
+
+.btn-remove-photo:hover {
+  background: var(--priority-urgent);
+  color: white;
+  border-color: var(--priority-urgent);
 }
 
 .calendar-header {
@@ -1358,6 +1472,19 @@ kbd {
   .cal-task-dot {
     font-size: 0.5rem;
     padding: 0 3px;
+  }
+
+  .calendar-with-photo {
+    flex-direction: column;
+  }
+
+  .personal-photo-card {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .personal-photo-area {
+    aspect-ratio: 16 / 9;
   }
 }
 

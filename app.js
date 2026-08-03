@@ -948,6 +948,107 @@
     }
   });
 
+  // ---------- Notion-style Quote & Personal Photo ----------
+  function initQuoteAndPhoto() {
+    // 1. Quote Callout
+    const quoteEmoji = $('#quote-emoji');
+    const quoteText = $('#quote-text');
+    const QUOTE_EMOJIS = ['💡', '✨', '🎯', '🔥', '🚀', '🌟', '💭', '🌱', '👑', '💫'];
+
+    if (quoteEmoji && quoteText) {
+      const savedQuote = localStorage.getItem('devtask_quote');
+      if (savedQuote) {
+        try {
+          const { emoji, text } = JSON.parse(savedQuote);
+          if (emoji) quoteEmoji.textContent = emoji;
+          if (text) quoteText.textContent = text;
+        } catch (e) {}
+      }
+
+      const saveQuote = () => {
+        localStorage.setItem('devtask_quote', JSON.stringify({
+          emoji: quoteEmoji.textContent,
+          text: quoteText.textContent
+        }));
+      };
+
+      quoteEmoji.addEventListener('click', () => {
+        const currentIdx = QUOTE_EMOJIS.indexOf(quoteEmoji.textContent);
+        const nextIdx = (currentIdx + 1) % QUOTE_EMOJIS.length;
+        quoteEmoji.textContent = QUOTE_EMOJIS[nextIdx];
+        saveQuote();
+      });
+
+      quoteText.addEventListener('input', saveQuote);
+    }
+
+    // 2. Personal Photo next to calendar
+    const photoArea = $('#personal-photo-area');
+    const photoInput = $('#personal-photo-input');
+    const photoImg = $('#personal-photo-img');
+    const photoPlaceholder = $('#photo-placeholder');
+    const btnRemovePhoto = $('#btn-remove-photo');
+
+    const updatePhotoUI = (dataUrl) => {
+      if (dataUrl) {
+        photoImg.src = dataUrl;
+        photoImg.style.display = 'block';
+        photoPlaceholder.style.display = 'none';
+        btnRemovePhoto.style.display = 'flex';
+      } else {
+        photoImg.src = '';
+        photoImg.style.display = 'none';
+        photoPlaceholder.style.display = 'flex';
+        btnRemovePhoto.style.display = 'none';
+      }
+    };
+
+    const savedPhoto = localStorage.getItem('devtask_personal_photo');
+    if (savedPhoto) {
+      updatePhotoUI(savedPhoto);
+    }
+
+    if (photoArea && photoInput) {
+      photoArea.addEventListener('click', (e) => {
+        if (e.target.closest('#btn-remove-photo')) return;
+        photoInput.click();
+      });
+
+      photoInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxW = 600;
+            let w = img.width, h = img.height;
+            if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            localStorage.setItem('devtask_personal_photo', dataUrl);
+            updatePhotoUI(dataUrl);
+            showToast('Personal photo added!', 'success');
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+        photoInput.value = '';
+      });
+    }
+
+    if (btnRemovePhoto) {
+      btnRemovePhoto.addEventListener('click', (e) => {
+        e.stopPropagation();
+        localStorage.removeItem('devtask_personal_photo');
+        updatePhotoUI(null);
+        showToast('Personal photo removed', 'info');
+      });
+    }
+  }
+
   // ---------- Init ----------
   function init() {
     // Set today's date as default
@@ -956,6 +1057,7 @@
     // Render initial view
     renderDashboard();
     updateStats();
+    initQuoteAndPhoto();
   }
 
   init();
