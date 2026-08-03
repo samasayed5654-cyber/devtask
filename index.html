@@ -240,6 +240,23 @@
       </div>
       <form id="task-form">
         <div class="form-group">
+          <label>
+            <span class="code-keyword">const</span> icon <span class="code-operator">=</span> <span class="code-comment">// click to pick</span>
+          </label>
+          <div class="icon-picker-area">
+            <div class="icon-preview" id="icon-preview" title="Click to pick emoji">📝</div>
+            <div class="icon-picker-controls">
+              <div class="icon-picker-row">
+                <button type="button" class="btn-icon-pick" id="btn-toggle-emojis">😀 Emoji</button>
+                <label class="btn-icon-pick" for="icon-file-input">🖼️ Upload</label>
+                <input type="file" id="icon-file-input" accept="image/*">
+                <button type="button" class="btn-icon-remove" id="btn-remove-icon">✕ Clear</button>
+              </div>
+              <div class="emoji-grid" id="emoji-grid"></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
           <label for="task-title">
             <span class="code-keyword">const</span> title <span class="code-operator">=</span>
           </label>

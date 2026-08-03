@@ -5,16 +5,16 @@
 /* ---------- CSS Variables / Design Tokens ---------- */
 :root {
   /* Base palette */
-  --bg-primary: #0a0e17;
-  --bg-secondary: #0f1520;
-  --bg-tertiary: #141c2b;
-  --bg-card: #111827;
-  --bg-hover: #1a2335;
-  --bg-input: #0d1321;
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #111111;
+  --bg-card: #0d0d0d;
+  --bg-hover: #1a1a1a;
+  --bg-input: #080808;
 
   /* Borders */
-  --border-primary: #1e293b;
-  --border-hover: #334155;
+  --border-primary: #1a1a1a;
+  --border-hover: #2a2a2a;
   --border-accent: #00ff9540;
 
   /* Text */
@@ -1526,5 +1526,167 @@ kbd {
   max-height: 75vh;
   border-radius: var(--radius-md);
   box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+}
+
+/* ---------- Task Icon (Notion-style) ---------- */
+.task-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: var(--bg-hover);
+  border: 1px solid transparent;
+  overflow: hidden;
+  user-select: none;
+}
+
+.task-icon:hover {
+  border-color: var(--border-hover);
+  transform: scale(1.1);
+}
+
+.task-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+/* Icon picker in modal */
+.icon-picker-area {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.icon-preview {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  background: var(--bg-hover);
+  border: 1px dashed var(--border-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  overflow: hidden;
+  user-select: none;
+}
+
+.icon-preview:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.icon-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 7px;
+}
+
+.icon-picker-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.icon-picker-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.icon-picker-row input[type="file"] {
+  display: none;
+}
+
+.emoji-grid {
+  display: none;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  max-height: 160px;
+  overflow-y: auto;
+  margin-top: 6px;
+}
+
+.emoji-grid.open {
+  display: flex;
+}
+
+.emoji-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.emoji-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  transform: scale(1.15);
+}
+
+.btn-icon-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-icon-pick:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.btn-icon-remove {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 8px;
+  background: transparent;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-icon-remove:hover {
+  border-color: var(--priority-urgent);
+  color: var(--priority-urgent);
+  background: var(--priority-urgent-bg);
 }
 

@@ -48,6 +48,23 @@
   const lightboxContent = $('#lightbox-content');
   let currentAttachments = [];
 
+  // Icon picker
+  const iconPreview = $('#icon-preview');
+  const emojiGrid = $('#emoji-grid');
+  const btnToggleEmojis = $('#btn-toggle-emojis');
+  const btnRemoveIcon = $('#btn-remove-icon');
+  const iconFileInput = $('#icon-file-input');
+  let currentIcon = { type: 'emoji', value: '📝' };
+
+  const EMOJI_LIST = [
+    '📝','📋','🎯','🚀','💡','🔥','⚡','✨','🎨','🛠️',
+    '📦','📚','🧪','🔬','🔧','💻','🖥️','📱','🌐','🗂️',
+    '📌','🏷️','📎','🗃️','🧩','🎮','🎵','🎬','📷','🔒',
+    '🏆','⭐','💎','🌈','🍀','🐛','🦋','🌸','🌊','🔮',
+    '📐','✏️','🖊️','📓','🗒️','🧭','⏰','📅','🗓️','💼',
+    '🎒','🧲','🔋','💾','📡','🛡️','🎁','🏗️','🔑','🧠'
+  ];
+
   // Day modal
   const dayModalOverlay = $('#day-modal-overlay');
   const dayModalDate = $('#day-modal-date');
@@ -191,6 +208,75 @@
   });
 
   // ---------- Modal ----------
+  // Populate emoji grid once
+  function populateEmojiGrid() {
+    if (!emojiGrid) return;
+    emojiGrid.innerHTML = EMOJI_LIST.map(e => `<button type="button" class="emoji-btn" data-emoji="${e}">${e}</button>`).join('');
+    emojiGrid.querySelectorAll('.emoji-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentIcon = { type: 'emoji', value: btn.dataset.emoji };
+        renderIconPreview();
+        emojiGrid.classList.remove('open');
+      });
+    });
+  }
+  populateEmojiGrid();
+
+  function renderIconPreview() {
+    if (!iconPreview) return;
+    if (currentIcon.type === 'image') {
+      iconPreview.innerHTML = `<img src="${currentIcon.value}" alt="icon">`;
+    } else {
+      iconPreview.textContent = currentIcon.value;
+    }
+  }
+
+  if (btnToggleEmojis) {
+    btnToggleEmojis.addEventListener('click', () => {
+      emojiGrid.classList.toggle('open');
+    });
+  }
+
+  if (btnRemoveIcon) {
+    btnRemoveIcon.addEventListener('click', () => {
+      currentIcon = { type: 'emoji', value: '📝' };
+      renderIconPreview();
+      emojiGrid.classList.remove('open');
+    });
+  }
+
+  if (iconFileInput) {
+    iconFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file || !file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        // Compress for localStorage
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxW = 128;
+          let w = img.width, h = img.height;
+          if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          currentIcon = { type: 'image', value: canvas.toDataURL('image/jpeg', 0.8) };
+          renderIconPreview();
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+      iconFileInput.value = '';
+      emojiGrid.classList.remove('open');
+    });
+  }
+
+  if (iconPreview) {
+    iconPreview.addEventListener('click', () => {
+      emojiGrid.classList.toggle('open');
+    });
+  }
+
   function openModal(task = null) {
     if (task) {
       editingTaskId = task.id;
@@ -203,6 +289,7 @@
       taskTagsInput.value = (task.tags || []).join(', ');
       taskIdInput.value = task.id;
       currentAttachments = task.attachments ? [...task.attachments] : [];
+      currentIcon = task.icon ? { ...task.icon } : { type: 'emoji', value: '📝' };
     } else {
       editingTaskId = null;
       modalTitle.innerHTML = '<span class="accent">&gt;</span> new_task<span class="cursor-blink">█</span>';
@@ -211,7 +298,10 @@
       taskDateInput.value = todayString();
       taskIdInput.value = '';
       currentAttachments = [];
+      currentIcon = { type: 'emoji', value: '📝' };
     }
+    renderIconPreview();
+    if (emojiGrid) emojiGrid.classList.remove('open');
     renderMediaPreviewList();
     modalOverlay.classList.add('open');
     setTimeout(() => taskTitleInput.focus(), 200);
@@ -381,7 +471,7 @@
     if (editingTaskId) {
       const idx = tasks.findIndex(t => t.id === editingTaskId);
       if (idx !== -1) {
-        tasks[idx] = { ...tasks[idx], title, description, date, priority, tags, attachments: [...currentAttachments], updatedAt: Date.now() };
+        tasks[idx] = { ...tasks[idx], title, description, date, priority, tags, icon: { ...currentIcon }, attachments: [...currentAttachments], updatedAt: Date.now() };
         logActivity('updated', title);
         showToast(`Task "${title}" updated`, 'info');
       }
@@ -393,6 +483,7 @@
         date,
         priority,
         tags,
+        icon: { ...currentIcon },
         attachments: [...currentAttachments],
         completed: false,
         createdAt: Date.now(),
@@ -462,9 +553,15 @@
       </button>
     ` : '';
 
+    const iconData = task.icon || { type: 'emoji', value: '📝' };
+    const iconHTML = iconData.type === 'image'
+      ? `<div class="task-icon"><img src="${iconData.value}" alt="icon"></div>`
+      : `<div class="task-icon">${iconData.value}</div>`;
+
     return `
       <div class="task-item priority-${task.priority} ${task.completed ? 'completed' : ''}" data-id="${task.id}">
         <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} aria-label="Toggle ${task.title}">
+        ${iconHTML}
         <div class="task-content">
           <div class="task-title">${linkify(escapeHTML(task.title))}</div>
           ${task.description ? `<div class="task-desc-preview">${linkify(escapeHTML(task.description))}</div>` : ''}
